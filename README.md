@@ -111,7 +111,7 @@ Der Node ist datengetrieben. Jede Operation wird in `nodes/Ameise/resources/<api
 
 ## Compatibility
 
-Getestet mit n8n 2.x und Node.js 22.
+Getestet mit n8n 2.44 (Node.js 24).
 
 ## Resources
 
