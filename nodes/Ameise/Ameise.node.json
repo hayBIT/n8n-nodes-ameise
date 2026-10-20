@@ -1,0 +1,18 @@
+{
+	"node": "n8n-nodes-ameise",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Sales"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://docs.blaudirekt.dev/ameise-apis/auth/"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://github.com/hayBIT/n8n-nodes-ameise#readme"
+			}
+		]
+	}
+}

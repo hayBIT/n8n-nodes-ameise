@@ -1,0 +1,367 @@
+import {
+	bodyField,
+	numberOption,
+	pathParam,
+	stringOption,
+	updateFields,
+} from '../../shared/fields';
+import type { AmeiseResource } from '../../shared/types';
+import { brokerId, customerId, nationOption, STOCKS_MAX_PAGE_SIZE } from './common';
+
+const communicationId = pathParam(
+	'communicationId',
+	'Communication ID',
+	'ID of the communication item',
+);
+const additionalAddressId = pathParam(
+	'additionalAddressId',
+	'Additional Address ID',
+	'ID of the address',
+);
+const tag = pathParam('tag', 'Tag', 'Name of the suggested tag');
+
+const additionalAddressTypes = [
+	'arbeitgeber',
+	'buero',
+	'ferienhaus',
+	'filiale',
+	'firma',
+	'garage',
+	'kanzlei',
+	'lager',
+	'niederlassung',
+	'praxis',
+	'sonstiges',
+	'zweitwohnsitz',
+];
+
+export const stocksCustomerCommunication: AmeiseResource = {
+	api: 'stocks',
+	value: 'stocksCustomerCommunication',
+	name: 'Customer Communication',
+	description: 'Phone numbers, email addresses and websites of a customer',
+	operations: [
+		{
+			value: 'create',
+			name: 'Create',
+			action: 'Create a communication item',
+			description: 'Add a phone number, email address or website to a customer',
+			method: 'POST',
+			path: '/customers/{customerId}/communications',
+			fields: [
+				customerId,
+				bodyField({
+					displayName: 'Type',
+					name: 'type',
+					type: 'options',
+					options: [
+						{ name: 'Email', value: 'email' },
+						{ name: 'Mobile', value: 'mobile' },
+						{ name: 'Phone', value: 'phone' },
+						{ name: 'Website', value: 'website' },
+					],
+					required: true,
+					default: 'email',
+				}),
+				bodyField({
+					displayName: 'Kind',
+					name: 'kind',
+					type: 'options',
+					options: [
+						{ name: 'Business', value: 'business' },
+						{ name: 'Private', value: 'private' },
+					],
+					required: true,
+					default: 'private',
+				}),
+				bodyField({
+					displayName: 'Value',
+					name: 'value',
+					type: 'string',
+					required: true,
+					default: '',
+					description: 'Phone number, email address or URL',
+				}),
+				bodyField({
+					displayName: 'Is Default',
+					name: 'isDefault',
+					type: 'boolean',
+					default: false,
+					description: 'Whether this is the default item of its type',
+				}),
+				bodyField({
+					displayName: 'Description',
+					name: 'description',
+					type: 'string',
+					default: '',
+				}),
+			],
+		},
+		{
+			value: 'delete',
+			name: 'Delete',
+			action: 'Delete a communication item',
+			description: 'Delete a communication item of a customer',
+			method: 'DELETE',
+			path: '/customers/{customerId}/communications/{communicationId}',
+			fields: [customerId, communicationId],
+		},
+		{
+			value: 'setDefault',
+			name: 'Set as Default',
+			action: 'Set a communication item as default',
+			description: 'Make a communication item the default one of its type',
+			method: 'PUT',
+			path: '/customers/{customerId}/communications/{communicationId}/default',
+			fields: [customerId, communicationId],
+		},
+		{
+			value: 'update',
+			name: 'Update',
+			action: 'Update a communication item',
+			description: 'Update the value and description of a communication item',
+			method: 'PUT',
+			path: '/customers/{customerId}/communications/{communicationId}',
+			fields: [
+				customerId,
+				communicationId,
+				bodyField({
+					displayName: 'Value',
+					name: 'value',
+					type: 'string',
+					required: true,
+					default: '',
+				}),
+				bodyField({
+					displayName: 'Description',
+					name: 'description',
+					type: 'string',
+					default: '',
+				}),
+			],
+		},
+	],
+};
+
+export const stocksCustomerAddress: AmeiseResource = {
+	api: 'stocks',
+	value: 'stocksCustomerAddress',
+	name: 'Customer Address',
+	operations: [
+		{
+			value: 'deleteAdditional',
+			name: 'Delete Additional Address',
+			action: 'Delete an additional address',
+			description: 'Remove an additional address of a customer',
+			method: 'DELETE',
+			path: '/customers/{customerId}/additional-addresses/{additionalAddressId}',
+			fields: [customerId, additionalAddressId],
+		},
+		{
+			value: 'getAdditional',
+			name: 'Get Additional Addresses',
+			action: 'Get the additional addresses of a customer',
+			description: 'Retrieve the additional addresses of a customer',
+			method: 'GET',
+			path: '/customers/{customerId}/additional-addresses',
+			itemsKey: 'items',
+			fields: [customerId],
+		},
+		{
+			value: 'getMain',
+			name: 'Get Main Address',
+			action: 'Get the main address of a customer',
+			description: 'Retrieve the main address of a customer',
+			method: 'GET',
+			path: '/customer/{customerId}/main-address',
+			fields: [customerId],
+		},
+		{
+			value: 'updateAdditional',
+			name: 'Update Additional Address',
+			action: 'Update an additional address',
+			description: 'Update an additional address of a customer',
+			method: 'PUT',
+			path: '/customers/{customerId}/additional-addresses/{additionalAddressId}',
+			fields: [
+				customerId,
+				additionalAddressId,
+				bodyField({
+					displayName: 'Type',
+					name: 'type',
+					type: 'options',
+					options: additionalAddressTypes.map((type) => ({
+						name: type.charAt(0).toUpperCase() + type.slice(1),
+						value: type,
+					})),
+					required: true,
+					default: 'sonstiges',
+				}),
+				bodyField({ ...nationOption('countryCode', 'Country', true), default: 'de' }),
+				updateFields([
+					stringOption('addressSupplement', 'Address Supplement'),
+					stringOption('city', 'City'),
+					numberOption('livingSpaceSQM', 'Living Space (m²)'),
+					stringOption('street', 'Street'),
+					stringOption('zip', 'Zip'),
+				]),
+			],
+		},
+		{
+			value: 'updateMain',
+			name: 'Update Main Address',
+			action: 'Update the main address of a customer',
+			description: 'Update the main address of a customer',
+			method: 'PUT',
+			path: '/customers/{customerId}/main-address',
+			fields: [
+				customerId,
+				bodyField({ ...nationOption('countryCode', 'Country', true), default: 'de' }),
+				updateFields([
+					stringOption('city', 'City'),
+					numberOption('livingSpace', 'Living Space (m²)'),
+					stringOption('street', 'Street'),
+					stringOption('zip', 'Zip'),
+				]),
+			],
+		},
+	],
+};
+
+export const stocksCustomerRelation: AmeiseResource = {
+	api: 'stocks',
+	value: 'stocksCustomerRelation',
+	name: 'Customer Relation',
+	description: 'Relations between customers, e.g. family members',
+	operations: [
+		{
+			value: 'create',
+			name: 'Create',
+			action: 'Create a customer relation',
+			description: 'Relate two customers with each other',
+			method: 'POST',
+			path: '/customers/{customerId}/relations',
+			fields: [
+				customerId,
+				bodyField({
+					displayName: 'Related Customer ID',
+					name: 'relatedCustomerId',
+					type: 'string',
+					required: true,
+					default: '',
+				}),
+				bodyField({
+					displayName: 'Relation Text',
+					name: 'relationText',
+					type: 'string',
+					required: true,
+					default: '',
+					description: 'Relation from the customer to the related customer, e.g. "Vater"',
+				}),
+				bodyField({
+					displayName: 'Inverse Relation Text',
+					name: 'inverseRelationText',
+					type: 'string',
+					required: true,
+					default: '',
+					description: 'Relation from the related customer back to the customer, e.g. "Sohn"',
+				}),
+			],
+		},
+		{
+			value: 'delete',
+			name: 'Delete',
+			action: 'Delete a customer relation',
+			description: 'Remove the relation between two customers',
+			method: 'DELETE',
+			path: '/customers/{customerId}/relations/{relatedCustomerId}',
+			fields: [
+				customerId,
+				pathParam('relatedCustomerId', 'Related Customer ID', 'ID of the related customer'),
+			],
+		},
+		{
+			value: 'getAll',
+			name: 'Get Many',
+			action: 'Get many customer relations',
+			description: 'Retrieve the relations of a customer',
+			method: 'GET',
+			path: '/customers/{customerId}/relations',
+			pagination: { maxPageSize: STOCKS_MAX_PAGE_SIZE },
+			fields: [customerId],
+		},
+	],
+};
+
+const tagName = bodyField({
+	displayName: 'Name',
+	name: 'name',
+	type: 'string',
+	required: true,
+	default: '',
+	description: 'Name of the suggested tag',
+});
+
+export const stocksSuggestedTag: AmeiseResource = {
+	api: 'stocks',
+	value: 'stocksSuggestedTag',
+	name: 'Customer Suggested Tag',
+	description: 'Tags suggested when tagging customers',
+	operations: [
+		{
+			value: 'create',
+			name: 'Create',
+			action: 'Create a suggested tag',
+			description: 'Create a suggested customer tag in the broker tree of the logged-in user',
+			method: 'POST',
+			path: '/customers/suggested-tags',
+			fields: [tagName],
+		},
+		{
+			value: 'createForBroker',
+			name: 'Create for Broker',
+			action: 'Create a suggested tag for a broker',
+			description: 'Create a suggested customer tag for a root broker',
+			method: 'POST',
+			path: '/brokers/{brokerId}/customers/suggested-tags',
+			fields: [brokerId, tagName],
+		},
+		{
+			value: 'delete',
+			name: 'Delete',
+			action: 'Delete a suggested tag',
+			description: 'Delete a suggested customer tag',
+			method: 'DELETE',
+			path: '/customers/suggested-tags/{tag}',
+			fields: [tag],
+		},
+		{
+			value: 'deleteForBroker',
+			name: 'Delete for Broker',
+			action: 'Delete a suggested tag of a broker',
+			description: 'Delete a suggested customer tag of a broker',
+			method: 'DELETE',
+			path: '/brokers/{brokerId}/customers/suggested-tags/{tag}',
+			fields: [brokerId, tag],
+		},
+		{
+			value: 'getAll',
+			name: 'Get Many',
+			action: 'Get many suggested tags',
+			description: 'Retrieve the suggested customer tags of the logged-in user',
+			method: 'GET',
+			path: '/customers/suggested-tags',
+			itemsKey: 'tags',
+		},
+		{
+			value: 'getAllForBroker',
+			name: 'Get Many for Broker',
+			action: 'Get many suggested tags of a broker',
+			description: 'Retrieve the suggested customer tags of a broker',
+			method: 'GET',
+			path: '/brokers/{brokerId}/customers/suggested-tags',
+			fields: [brokerId],
+			itemsKey: 'tags',
+		},
+	],
+};
