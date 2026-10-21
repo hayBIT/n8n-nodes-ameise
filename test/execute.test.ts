@@ -22,7 +22,7 @@ describe('request building', () => {
 			additionalFields: { payment__netAmount: 10.5, payment__intervalId: '1', risk: 'Car' },
 		});
 		const request = buildRequest.call(context, createContract, 0);
-		expect(request.path).toBe('/contracts');
+		expect(request.path).toBe('/v1/contracts');
 		expect(request.body).toEqual({
 			customerId: 42,
 			companyId: 'cmp2',
@@ -39,7 +39,7 @@ describe('request building', () => {
 			updateTags,
 			0,
 		);
-		expect(tags.path).toBe('/customers/C%201/tags');
+		expect(tags.path).toBe('/v1/customers/C%201/tags');
 		expect(tags.body).toEqual({ tags: ['vip', 'kfz'] });
 	});
 
@@ -146,6 +146,40 @@ describe('execution', () => {
 				},
 			],
 		});
+	});
+
+	it('calls v1 and unversioned Stocks endpoints, also with an old …/api/v1 base URL', async () => {
+		for (const stocksBaseUrl of [
+			'https://stocks.example.com/api',
+			'https://stocks.example.com/api/v1/',
+		]) {
+			const tags = operation('stocks', 'stocksCustomer', 'getAllTags');
+			const note = operation('stocks', 'stocksCustomerNote', 'create');
+			const { context, requests } = createContext(
+				{ customerId: '7', type: 'info', text: 'Hi' },
+				() => [{ tag: 'vip' }],
+				{ stocksBaseUrl },
+			);
+			const result = await executeOperation.call(context, tags.resource, tags.operation, 0);
+			await executeOperation.call(context, note.resource, note.operation, 0);
+
+			expect(result.map((item) => item.json)).toEqual([{ tag: 'vip' }]);
+			expect(requests.map((request) => request.url)).toEqual([
+				'https://stocks.example.com/api/customer/tags/all',
+				'https://stocks.example.com/api/v1/customers/7/notes',
+			]);
+		}
+	});
+
+	it('uploads images from binary data as base64', async () => {
+		const { resource, operation: upload } = operation('stocks', 'stocksBroker', 'uploadLogo');
+		const { context, requests } = createContext({ brokerId: 'B1', binaryPropertyName: 'data' });
+
+		await executeOperation.call(context, resource, upload, 0);
+
+		expect(requests[0].method).toBe('PUT');
+		expect(requests[0].url).toBe('https://stocks.ameiseapis.com/api/brokers/logo-image/B1');
+		expect(requests[0].body).toEqual({ base64: Buffer.from('hello').toString('base64') });
 	});
 
 	it('wraps primitive arrays and reports success for empty responses', async () => {

@@ -15,7 +15,7 @@ export const baseUrlProperties: INodeProperties[] = [
 		displayName: 'Stocks Base URL',
 		name: 'stocksBaseUrl',
 		type: 'string',
-		default: 'https://stocks.ameiseapis.com/api/v1',
+		default: 'https://stocks.ameiseapis.com/api',
 		description: 'Base URL of the Stocks API. Change it to use another environment.',
 	},
 	{

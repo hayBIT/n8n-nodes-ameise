@@ -2,7 +2,7 @@
 
 n8n Community Node für die **Ameise-APIs** von blau direkt. Mit einem einzigen Node „Ameise“ lassen sich in n8n-Workflows nutzen:
 
-- **Stocks**: Kunden, Kundennotizen, Kommunikationsdaten, Adressen, Kundenbeziehungen, Tags, Verträge, Vermittler, Vermittler-Mitarbeiter, Gesellschaften/Agenturen und Wertelisten (`/api/v1`)
+- **Stocks**: Kunden, Kundennotizen, Kommunikationsdaten, Adressen, Kundenbeziehungen, Tags, Verträge, Vermittler, Vermittler-Mitarbeiter, Gesellschaften, Agenturen und Wertelisten (alle nicht-deprecated Endpunkte, `/api/v1` und ältere `/api`-Endpunkte ohne v1-Entsprechung)
 - **Archive**: Kundenarchiv, also Archiveinträge mit Dateien, Logs und Tags
 - **Panda**: Ausschreibungen (Tender), Kundenlinks, Panda-Kundendaten, Sparten, Branchen, Versicherer und Angebotsdateien
 
@@ -63,7 +63,7 @@ Beide Credentials enthalten überschreibbare Base-URLs (Standard: Produktion):
 | API | Produktion |
 |---|---|
 | Panda | `https://panda.ameiseapis.com/public/api/v1` |
-| Stocks | `https://stocks.ameiseapis.com/api/v1` |
+| Stocks | `https://stocks.ameiseapis.com/api` (ein älteres `…/api/v1` wird automatisch korrigiert) |
 | Archive | `https://customer-archives.ameiseapis.com/api` |
 
 Für die Integrationsumgebung tragt ihr die entsprechenden URLs ein (z. B. Panda: `https://panda-ameiseapis.inte.dionera.dev/public/api/v1`) und verwendet einen ServiceAccount der Integrationsumgebung (Issuer `https://auth.inte.dionera.dev`).
@@ -78,17 +78,18 @@ Im Node wählt ihr zuerst die **API**, dann **Resource** und **Operation**.
 
 | Resource | Operations |
 |---|---|
-| Customer | Create, Get, Get Many, Get Many for Broker, Get Names, Get Logs, Update, Update Block Type, Update Broker, Update State, Update Tags, Send Notification |
+| Customer | Create, Get, Get Many, Get Many for Broker, Get Names, Get Logs, Get State, Get Tags, Get All Tags, Update, Update Block Type, Update Broker, Update State, Update Tags, Send Notification |
 | Customer Note | Create, Get Many, Update, Delete |
-| Customer Communication | Create, Update, Delete, Set as Default |
-| Customer Address | Get/Update Main Address, Get/Update/Delete Additional Address |
+| Customer Communication | Create, Get Many, Update, Delete, Set as Default |
+| Customer Address | Get/Update Main Address, Create/Get/Update/Delete Additional Address |
 | Customer Relation | Create, Get Many, Delete |
 | Customer Suggested Tag | Create, Get Many, Delete (global oder je Vermittler) |
-| Contract | Create, Update, Update Address, Update Broker, Get Logs, Get Contact People, Validate Policy Number, Get Cancellation Reasons, Get Line Group Categories |
-| Broker (Vermittler) | Get, Get Many, Update, Create Sub-Broker, Get/Update Legal IDs, Get/Update Status, Get Supporter, Set Supporter Role, Update Contractual Dates, Update Bank Account, Update Legal Status |
-| Broker Employee (Vermittler-Mitarbeiter) | Create, Get, Update |
+| Contract | Create, Get, Get Many, Get Many for Customer, Get Many Grouped by Address, Get Insured Contracts, Get Sum of Premiums, Get Bank Accounts, Get Aggregated Bank Accounts, Update, Update Address, Update Bank Account, Update Broker, Add Note, Notify Company (VDA), Get Logs, Get Contact People, Validate Policy Number, Get States, Get Lines, Get Cancellation Reasons, Get Line Group Categories |
+| Broker (Vermittler) | Get, Get Many, Update, Create Sub-Broker, Get/Update Legal IDs, Get/Update Status, Get Supporter, Set Supporter Role, Update Contractual Dates, Update Bank Account, Update Legal Status, Get Names, Get Parent IDs, Upload/Remove Logo, Get/Update/Reset Legitimation Document Template |
+| Broker Employee (Vermittler-Mitarbeiter) | Create, Get, Get Many, Get Many for Broker, Get Special Roles, Update, Set/Remove Contract Signer Role, Set/Remove Customer Supporter Role, Upload Profile/Signature Image |
+| Agency (Agentur) | Create, Get, Get Many, Update |
 | Company | Get, Get Many, Get Valid Agencies, Get Valid Agencies by BaFin Number |
-| Dictionary | Get Blocked Reasons, Get Legal Forms, Get Nations |
+| Dictionary | Get Blocked Reasons, Get Legal Forms, Get Nations, Get Salutations |
 
 ### Archive
 

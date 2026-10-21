@@ -1,6 +1,7 @@
 import type { INodeProperties } from 'n8n-workflow';
-import { pathParam } from '../../shared/fields';
-import type { AmeiseOperation } from '../../shared/types';
+import { readInputFile } from '../../shared/binary';
+import { localField, pathParam } from '../../shared/fields';
+import type { AmeiseField, AmeiseOperation } from '../../shared/types';
 
 export const STOCKS_MAX_PAGE_SIZE = 100;
 
@@ -41,7 +42,20 @@ export function legalFormOption(name = 'legalForm'): INodeProperties {
 	};
 }
 
-export const salutationDescription = 'Salutation ID (1–7). The value 7 marks a company customer.';
+export const salutationDescription = 'The salutation with ID 7 marks a company customer';
+
+export function salutationOption(name: string, required = false): INodeProperties {
+	return {
+		displayName: 'Salutation Name or ID',
+		name,
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getStocksSalutations' },
+		required,
+		default: '',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
+	};
+}
 
 export const dateHint = 'Format: YYYY-MM-DD';
 
@@ -60,5 +74,48 @@ export function dictionaryOperation(
 		method: 'GET',
 		path,
 		itemsKey,
+	};
+}
+
+export function commaListOption(name: string, displayName: string, description: string) {
+	return {
+		displayName,
+		name,
+		type: 'string' as const,
+		default: '',
+		description: `${description} (comma-separated)`,
+	};
+}
+
+const imageField: AmeiseField = localField({
+	displayName: 'Input Binary Field',
+	name: 'binaryPropertyName',
+	type: 'string',
+	required: true,
+	default: 'data',
+	hint: 'The name of the input binary field containing the image',
+});
+
+/** PUT of a base64-encoded image (`{ base64 }`) read from a binary field */
+export function imageUploadOperation(
+	value: string,
+	name: string,
+	noun: string,
+	path: string,
+	pathField: AmeiseField,
+): AmeiseOperation {
+	return {
+		value,
+		name,
+		action: `Upload ${noun}`,
+		description: `Upload ${noun} from binary data`,
+		method: 'PUT',
+		path,
+		fields: [pathField, imageField],
+		async preSend(itemIndex, request) {
+			const binaryPropertyName = this.getNodeParameter('binaryPropertyName', itemIndex) as string;
+			const input = await readInputFile.call(this, itemIndex, binaryPropertyName);
+			request.body.base64 = input.buffer.toString('base64');
+		},
 	};
 }

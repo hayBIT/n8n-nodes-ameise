@@ -1,4 +1,5 @@
 import {
+	additionalFields,
 	bodyField,
 	numberOption,
 	pathParam,
@@ -35,6 +36,11 @@ const additionalAddressTypes = [
 	'zweitwohnsitz',
 ];
 
+const additionalAddressTypeOptions = additionalAddressTypes.map((type) => ({
+	name: type.charAt(0).toUpperCase() + type.slice(1),
+	value: type,
+}));
+
 export const stocksCustomerCommunication: AmeiseResource = {
 	api: 'stocks',
 	value: 'stocksCustomerCommunication',
@@ -42,12 +48,22 @@ export const stocksCustomerCommunication: AmeiseResource = {
 	description: 'Phone numbers, email addresses and websites of a customer',
 	operations: [
 		{
+			value: 'getAll',
+			name: 'Get Many',
+			action: 'Get the communication items of a customer',
+			description:
+				'Retrieve phone numbers, mobile numbers, email addresses and websites of a customer',
+			method: 'GET',
+			path: '/customers/{customerId}/communications',
+			fields: [customerId],
+		},
+		{
 			value: 'create',
 			name: 'Create',
 			action: 'Create a communication item',
 			description: 'Add a phone number, email address or website to a customer',
 			method: 'POST',
-			path: '/customers/{customerId}/communications',
+			path: '/v1/customers/{customerId}/communications',
 			fields: [
 				customerId,
 				bodyField({
@@ -103,7 +119,7 @@ export const stocksCustomerCommunication: AmeiseResource = {
 			action: 'Delete a communication item',
 			description: 'Delete a communication item of a customer',
 			method: 'DELETE',
-			path: '/customers/{customerId}/communications/{communicationId}',
+			path: '/v1/customers/{customerId}/communications/{communicationId}',
 			fields: [customerId, communicationId],
 		},
 		{
@@ -112,7 +128,7 @@ export const stocksCustomerCommunication: AmeiseResource = {
 			action: 'Set a communication item as default',
 			description: 'Make a communication item the default one of its type',
 			method: 'PUT',
-			path: '/customers/{customerId}/communications/{communicationId}/default',
+			path: '/v1/customers/{customerId}/communications/{communicationId}/default',
 			fields: [customerId, communicationId],
 		},
 		{
@@ -121,7 +137,7 @@ export const stocksCustomerCommunication: AmeiseResource = {
 			action: 'Update a communication item',
 			description: 'Update the value and description of a communication item',
 			method: 'PUT',
-			path: '/customers/{customerId}/communications/{communicationId}',
+			path: '/v1/customers/{customerId}/communications/{communicationId}',
 			fields: [
 				customerId,
 				communicationId,
@@ -149,12 +165,39 @@ export const stocksCustomerAddress: AmeiseResource = {
 	name: 'Customer Address',
 	operations: [
 		{
+			value: 'createAdditional',
+			name: 'Create Additional Address',
+			action: 'Create an additional address',
+			description: 'Add an additional address to a customer and return all additional addresses',
+			method: 'POST',
+			path: '/customer/additional-addresses/{customerId}',
+			fields: [
+				customerId,
+				bodyField({
+					displayName: 'Type',
+					name: 'type',
+					type: 'options',
+					options: additionalAddressTypeOptions,
+					required: true,
+					default: 'sonstiges',
+				}),
+				bodyField({ ...nationOption('nation', 'Country', true), default: 'de' }),
+				additionalFields([
+					stringOption('addressSupplement', 'Address Supplement'),
+					stringOption('city', 'City'),
+					numberOption('livingSpaceSQM', 'Living Space (m²)'),
+					stringOption('street', 'Street'),
+					stringOption('zip', 'Zip'),
+				]),
+			],
+		},
+		{
 			value: 'deleteAdditional',
 			name: 'Delete Additional Address',
 			action: 'Delete an additional address',
 			description: 'Remove an additional address of a customer',
 			method: 'DELETE',
-			path: '/customers/{customerId}/additional-addresses/{additionalAddressId}',
+			path: '/v1/customers/{customerId}/additional-addresses/{additionalAddressId}',
 			fields: [customerId, additionalAddressId],
 		},
 		{
@@ -163,7 +206,7 @@ export const stocksCustomerAddress: AmeiseResource = {
 			action: 'Get the additional addresses of a customer',
 			description: 'Retrieve the additional addresses of a customer',
 			method: 'GET',
-			path: '/customers/{customerId}/additional-addresses',
+			path: '/v1/customers/{customerId}/additional-addresses',
 			itemsKey: 'items',
 			fields: [customerId],
 		},
@@ -173,7 +216,7 @@ export const stocksCustomerAddress: AmeiseResource = {
 			action: 'Get the main address of a customer',
 			description: 'Retrieve the main address of a customer',
 			method: 'GET',
-			path: '/customer/{customerId}/main-address',
+			path: '/v1/customer/{customerId}/main-address',
 			fields: [customerId],
 		},
 		{
@@ -182,7 +225,7 @@ export const stocksCustomerAddress: AmeiseResource = {
 			action: 'Update an additional address',
 			description: 'Update an additional address of a customer',
 			method: 'PUT',
-			path: '/customers/{customerId}/additional-addresses/{additionalAddressId}',
+			path: '/v1/customers/{customerId}/additional-addresses/{additionalAddressId}',
 			fields: [
 				customerId,
 				additionalAddressId,
@@ -190,10 +233,7 @@ export const stocksCustomerAddress: AmeiseResource = {
 					displayName: 'Type',
 					name: 'type',
 					type: 'options',
-					options: additionalAddressTypes.map((type) => ({
-						name: type.charAt(0).toUpperCase() + type.slice(1),
-						value: type,
-					})),
+					options: additionalAddressTypeOptions,
 					required: true,
 					default: 'sonstiges',
 				}),
@@ -213,7 +253,7 @@ export const stocksCustomerAddress: AmeiseResource = {
 			action: 'Update the main address of a customer',
 			description: 'Update the main address of a customer',
 			method: 'PUT',
-			path: '/customers/{customerId}/main-address',
+			path: '/v1/customers/{customerId}/main-address',
 			fields: [
 				customerId,
 				bodyField({ ...nationOption('countryCode', 'Country', true), default: 'de' }),
@@ -240,7 +280,7 @@ export const stocksCustomerRelation: AmeiseResource = {
 			action: 'Create a customer relation',
 			description: 'Relate two customers with each other',
 			method: 'POST',
-			path: '/customers/{customerId}/relations',
+			path: '/v1/customers/{customerId}/relations',
 			fields: [
 				customerId,
 				bodyField({
@@ -274,7 +314,7 @@ export const stocksCustomerRelation: AmeiseResource = {
 			action: 'Delete a customer relation',
 			description: 'Remove the relation between two customers',
 			method: 'DELETE',
-			path: '/customers/{customerId}/relations/{relatedCustomerId}',
+			path: '/v1/customers/{customerId}/relations/{relatedCustomerId}',
 			fields: [
 				customerId,
 				pathParam('relatedCustomerId', 'Related Customer ID', 'ID of the related customer'),
@@ -286,7 +326,7 @@ export const stocksCustomerRelation: AmeiseResource = {
 			action: 'Get many customer relations',
 			description: 'Retrieve the relations of a customer',
 			method: 'GET',
-			path: '/customers/{customerId}/relations',
+			path: '/v1/customers/{customerId}/relations',
 			pagination: { maxPageSize: STOCKS_MAX_PAGE_SIZE },
 			fields: [customerId],
 		},
@@ -314,7 +354,7 @@ export const stocksSuggestedTag: AmeiseResource = {
 			action: 'Create a suggested tag',
 			description: 'Create a suggested customer tag in the broker tree of the logged-in user',
 			method: 'POST',
-			path: '/customers/suggested-tags',
+			path: '/v1/customers/suggested-tags',
 			fields: [tagName],
 		},
 		{
@@ -323,7 +363,7 @@ export const stocksSuggestedTag: AmeiseResource = {
 			action: 'Create a suggested tag for a broker',
 			description: 'Create a suggested customer tag for a root broker',
 			method: 'POST',
-			path: '/brokers/{brokerId}/customers/suggested-tags',
+			path: '/v1/brokers/{brokerId}/customers/suggested-tags',
 			fields: [brokerId, tagName],
 		},
 		{
@@ -332,7 +372,7 @@ export const stocksSuggestedTag: AmeiseResource = {
 			action: 'Delete a suggested tag',
 			description: 'Delete a suggested customer tag',
 			method: 'DELETE',
-			path: '/customers/suggested-tags/{tag}',
+			path: '/v1/customers/suggested-tags/{tag}',
 			fields: [tag],
 		},
 		{
@@ -341,7 +381,7 @@ export const stocksSuggestedTag: AmeiseResource = {
 			action: 'Delete a suggested tag of a broker',
 			description: 'Delete a suggested customer tag of a broker',
 			method: 'DELETE',
-			path: '/brokers/{brokerId}/customers/suggested-tags/{tag}',
+			path: '/v1/brokers/{brokerId}/customers/suggested-tags/{tag}',
 			fields: [brokerId, tag],
 		},
 		{
@@ -350,7 +390,7 @@ export const stocksSuggestedTag: AmeiseResource = {
 			action: 'Get many suggested tags',
 			description: 'Retrieve the suggested customer tags of the logged-in user',
 			method: 'GET',
-			path: '/customers/suggested-tags',
+			path: '/v1/customers/suggested-tags',
 			itemsKey: 'tags',
 		},
 		{
@@ -359,7 +399,7 @@ export const stocksSuggestedTag: AmeiseResource = {
 			action: 'Get many suggested tags of a broker',
 			description: 'Retrieve the suggested customer tags of a broker',
 			method: 'GET',
-			path: '/brokers/{brokerId}/customers/suggested-tags',
+			path: '/v1/brokers/{brokerId}/customers/suggested-tags',
 			fields: [brokerId],
 			itemsKey: 'tags',
 		},

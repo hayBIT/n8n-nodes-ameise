@@ -8,9 +8,12 @@ export type AmeiseApiName = 'panda' | 'stocks' | 'archive';
  */
 export const DEFAULT_BASE_URLS: Record<AmeiseApiName, string> = {
 	panda: 'https://panda.ameiseapis.com/public/api/v1',
-	stocks: 'https://stocks.ameiseapis.com/api/v1',
+	stocks: 'https://stocks.ameiseapis.com/api',
 	archive: 'https://customer-archives.ameiseapis.com/api',
 };
+
+/** Order of the APIs in the node; Stocks is used most and comes first */
+export const API_ORDER: AmeiseApiName[] = ['stocks', 'archive', 'panda'];
 
 export const API_DISPLAY_NAMES: Record<AmeiseApiName, string> = {
 	archive: 'Archive',

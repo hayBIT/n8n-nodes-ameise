@@ -44,7 +44,9 @@ export function resolveBaseUrl(api: AmeiseApiName, credentials: IDataObject): st
 		typeof configured === 'string' && configured.trim() !== ''
 			? configured.trim()
 			: DEFAULT_BASE_URLS[api];
-	return baseUrl.replace(/\/+$/, '');
+	const normalized = baseUrl.replace(/\/+$/, '');
+	// Stocks paths include their version (/v1/...); older credentials stored …/api/v1
+	return api === 'stocks' ? normalized.replace(/\/v1$/, '') : normalized;
 }
 
 function hasContent(body: unknown): boolean {

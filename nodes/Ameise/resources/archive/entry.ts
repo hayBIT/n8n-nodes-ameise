@@ -12,6 +12,7 @@ import {
 	updateFields,
 } from '../../shared/fields';
 import type { AmeiseResource, FieldTransform, PreparedRequest } from '../../shared/types';
+import { readInputFile } from '../../shared/binary';
 import { toDataUri } from '../../shared/utils';
 
 export const customerId = pathParam(
@@ -113,14 +114,13 @@ async function attachFiles(this: IExecuteFunctions, itemIndex: number, request: 
 
 	request.body.files = await Promise.all(
 		files.map(async (file) => {
-			const binary = this.helpers.assertBinaryData(itemIndex, file.binaryPropertyName);
-			const buffer = await this.helpers.getBinaryDataBuffer(itemIndex, file.binaryPropertyName);
-			const fileName = file.fileName || binary.fileName || file.binaryPropertyName;
+			const input = await readInputFile.call(this, itemIndex, file.binaryPropertyName);
+			const fileName = file.fileName || input.fileName || file.binaryPropertyName;
 			return {
 				type: file.type,
 				fileName,
 				subject: file.subject || fileName,
-				file: toDataUri(buffer, binary.mimeType),
+				file: toDataUri(input.buffer, input.mimeType),
 			};
 		}),
 	);

@@ -43,17 +43,21 @@ export async function getPandaIndustries(this: ILoadOptionsFunctions) {
 }
 
 export async function getStocksNations(this: ILoadOptionsFunctions) {
-	return await loadList.call(this, 'stocks', '/customer/nations', text);
+	return await loadList.call(this, 'stocks', '/v1/customer/nations', text);
 }
 
 export async function getStocksLegalForms(this: ILoadOptionsFunctions) {
-	return await loadList.call(this, 'stocks', '/customer/legal-forms', text);
+	return await loadList.call(this, 'stocks', '/v1/customer/legal-forms', text);
 }
 
 export async function getStocksBlockedReasons(this: ILoadOptionsFunctions) {
-	return await loadList.call(this, 'stocks', '/customer/blocked-reasons', text);
+	return await loadList.call(this, 'stocks', '/v1/customer/blocked-reasons', text);
+}
+
+export async function getStocksSalutations(this: ILoadOptionsFunctions) {
+	return await loadList.call(this, 'stocks', '/customer/salutations', text);
 }
 
 export async function getStocksCancellationReasons(this: ILoadOptionsFunctions) {
-	return await loadList.call(this, 'stocks', '/contracts/cancellation-reasons', text);
+	return await loadList.call(this, 'stocks', '/v1/contracts/cancellation-reasons', text);
 }

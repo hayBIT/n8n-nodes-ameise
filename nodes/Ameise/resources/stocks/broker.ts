@@ -9,13 +9,15 @@ import {
 	stringOption,
 	updateFields,
 } from '../../shared/fields';
-import type { AmeiseResource } from '../../shared/types';
+import type { AmeiseField, AmeiseOperation, AmeiseResource } from '../../shared/types';
 import { parseJson } from '../../shared/utils';
 import {
 	brokerId,
+	commaListOption,
 	dateHint,
 	dictionaryOperation,
-	salutationDescription,
+	imageUploadOperation,
+	salutationOption,
 	STOCKS_MAX_PAGE_SIZE,
 } from './common';
 
@@ -33,19 +35,319 @@ const accountStatusOption: INodeProperties = {
 	default: 'active',
 };
 
+const legitimationTemplatePath = '/brokers/legitimation-document-template/{brokerId}';
+
+const brokerExtraOperations: AmeiseOperation[] = [
+	{
+		value: 'getLegitimationTemplate',
+		name: 'Get Legitimation Document Template',
+		action: 'Get the legitimation document template of a broker',
+		description: 'Retrieve subject and body of the legitimation document template',
+		method: 'GET',
+		path: legitimationTemplatePath,
+		fields: [brokerId],
+	},
+	{
+		value: 'getNames',
+		name: 'Get Names',
+		action: 'Get broker names',
+		description: 'Retrieve the names of a set of brokers',
+		method: 'POST',
+		path: '/brokers/names',
+		fields: [
+			bodyField(
+				{
+					displayName: 'Broker IDs',
+					name: 'brokerIds',
+					type: 'string',
+					required: true,
+					default: '',
+					description: 'Comma-separated list of broker IDs',
+				},
+				{ transform: 'commaList' },
+			),
+		],
+	},
+	{
+		value: 'getParentIds',
+		name: 'Get Parent IDs',
+		action: 'Get the parent broker IDs',
+		description: 'Retrieve all parent broker IDs of a broker up to the root',
+		method: 'GET',
+		path: '/brokers/parent-ids/{brokerId}',
+		fields: [brokerId],
+	},
+	{
+		value: 'removeLogo',
+		name: 'Remove Logo',
+		action: 'Remove the logo of a broker',
+		description: 'Remove the logo image of a broker',
+		method: 'DELETE',
+		path: '/brokers/logo-image-remove/{brokerId}',
+		fields: [brokerId],
+	},
+	{
+		value: 'resetLegitimationTemplate',
+		name: 'Reset Legitimation Document Template',
+		action: 'Reset the legitimation document template of a broker',
+		description: 'Reset the legitimation document template to its default',
+		method: 'PUT',
+		path: '/brokers/legitimation-document-template-reset/{brokerId}',
+		fields: [brokerId],
+	},
+	{
+		value: 'updateLegitimationTemplate',
+		name: 'Update Legitimation Document Template',
+		action: 'Update the legitimation document template of a broker',
+		description: 'Update subject and body of the legitimation document template',
+		method: 'PUT',
+		path: legitimationTemplatePath,
+		fields: [
+			brokerId,
+			updateFields([
+				stringOption('subject', 'Subject'),
+				stringOption('template', 'Template', undefined, { typeOptions: { rows: 8 } }),
+			]),
+		],
+	},
+	imageUploadOperation(
+		'uploadLogo',
+		'Upload Logo',
+		'the logo of a broker',
+		'/brokers/logo-image/{brokerId}',
+		brokerId,
+	),
+];
+
+const employeeExtraOperations: AmeiseOperation[] = [
+	{
+		value: 'getAll',
+		name: 'Get Many',
+		action: 'Get many broker employees',
+		description: 'Retrieve broker employees, optionally filtered',
+		method: 'GET',
+		path: '/employees',
+		pagination: { maxPageSize: STOCKS_MAX_PAGE_SIZE },
+		fields: [
+			filters(
+				[
+					commaListOption('employeeIds', 'Employee IDs', 'Only these employees'),
+					booleanOption('onlyActive', 'Only Active', 'Whether to only return active employees'),
+					stringOption('search', 'Search'),
+				],
+				{ employeeIds: 'commaList' },
+			),
+		],
+	},
+	{
+		value: 'getAllForBroker',
+		name: 'Get Many for Broker',
+		action: 'Get the employees of a broker',
+		description: 'Retrieve the employees of a broker',
+		method: 'GET',
+		path: '/brokers/employees/{brokerId}',
+		pagination: { maxPageSize: STOCKS_MAX_PAGE_SIZE },
+		fields: [brokerId, filters([stringOption('search', 'Search')])],
+	},
+	{
+		value: 'getSpecialRoles',
+		name: 'Get Special Roles',
+		action: 'Get employees with special roles',
+		description:
+			'Retrieve the employees of a broker with special roles (contract signer, customer supporter)',
+		method: 'GET',
+		path: '/brokers/employee/special-roles/{brokerId}',
+		fields: [brokerId],
+	},
+	{
+		value: 'removeContractSigner',
+		name: 'Remove Contract Signer Role',
+		action: 'Remove the contract signer role',
+		description: 'Remove the contract signer role from an employee',
+		method: 'DELETE',
+		path: '/brokers/employee/remove-signer/{employeeId}',
+		fields: [employeeId],
+	},
+	{
+		value: 'removeSupporter',
+		name: 'Remove Customer Supporter Role',
+		action: 'Remove the customer supporter role',
+		description: 'Remove the customer supporter role from an employee',
+		method: 'DELETE',
+		path: '/brokers/employee/remove-supporter/{employeeId}',
+		fields: [employeeId],
+	},
+	{
+		value: 'setContractSigner',
+		name: 'Set Contract Signer Role',
+		action: 'Set the contract signer role',
+		description: 'Assign the contract signer role to an employee',
+		method: 'PUT',
+		path: '/brokers/employee/set-signer/{employeeId}',
+		fields: [employeeId],
+	},
+	{
+		value: 'setSupporter',
+		name: 'Set Customer Supporter Role',
+		action: 'Set the customer supporter role',
+		description: 'Assign the customer supporter role to an employee',
+		method: 'PUT',
+		path: '/brokers/employee/set-supporter/{employeeId}',
+		fields: [employeeId],
+	},
+	imageUploadOperation(
+		'uploadProfileImage',
+		'Upload Profile Image',
+		'the profile image of an employee',
+		'/brokers/employee/profile-image/{employeeId}',
+		employeeId,
+	),
+	imageUploadOperation(
+		'uploadSignatureImage',
+		'Upload Signature Image',
+		'the signature image of an employee',
+		'/brokers/employee/signature-image/{employeeId}',
+		employeeId,
+	),
+];
+
+const agencyStatusOption: INodeProperties = {
+	displayName: 'Status',
+	name: 'status',
+	type: 'options',
+	options: [
+		{ name: 'Active (Aktiv)', value: 'aktiv' },
+		{ name: 'Deleted (Gelöscht)', value: 'geloescht' },
+		{ name: 'No New Business (Kein Neugeschäft)', value: 'kein_neugeschaeft' },
+	],
+	default: 'aktiv',
+};
+
+const agencyInternalId = pathParam('agencyInternalId', 'Agency ID', 'Internal ID of the agency');
+const companyId = pathParam('companyId', 'Company ID', 'ID of the insurance company');
+
+function agencyBodyFields(): AmeiseField[] {
+	return [
+		bodyField({
+			displayName: 'Number',
+			name: 'number',
+			type: 'string',
+			required: true,
+			default: '',
+			description: 'Agency number',
+		}),
+		bodyField({ displayName: 'Name', name: 'name', type: 'string', required: true, default: '' }),
+		bodyField({ ...agencyStatusOption, required: true }),
+	];
+}
+
+const brokerIdsField: AmeiseField = bodyField(
+	{
+		displayName: 'Broker IDs',
+		name: 'brokers',
+		type: 'string',
+		default: '',
+		description: 'Comma-separated list of brokers the agency is assigned to',
+	},
+	{ transform: 'commaList' },
+);
+
+export const stocksAgency: AmeiseResource = {
+	api: 'stocks',
+	value: 'stocksAgency',
+	name: 'Agency',
+	description: 'Agencies (Agenturen) of insurance companies',
+	operations: [
+		{
+			value: 'create',
+			name: 'Create',
+			action: 'Create an agency',
+			description: 'Create an agency for an insurance company',
+			method: 'POST',
+			path: '/companies/{companyId}/agencies',
+			fields: [
+				companyId,
+				...agencyBodyFields(),
+				bodyField({
+					displayName: 'Is Sub-Agency',
+					name: 'isSubAgency',
+					type: 'boolean',
+					default: false,
+					description: 'Whether the agency is a sub-agency',
+				}),
+				brokerIdsField,
+			],
+			async preSend(_itemIndex, request) {
+				request.body.brokers = request.body.brokers ?? [];
+			},
+		},
+		{
+			value: 'get',
+			name: 'Get',
+			action: 'Get an agency',
+			description: 'Retrieve an agency by its internal ID',
+			method: 'GET',
+			path: '/agencies/{agencyInternalId}',
+			fields: [agencyInternalId],
+		},
+		{
+			value: 'getAll',
+			name: 'Get Many',
+			action: 'Get many agencies',
+			description: 'Retrieve agencies, optionally filtered',
+			method: 'GET',
+			path: '/agencies',
+			pagination: { maxPageSize: STOCKS_MAX_PAGE_SIZE },
+			fields: [
+				filters([
+					stringOption('brokerId', 'Broker ID'),
+					stringOption('companyId', 'Company ID'),
+					booleanOption(
+						'isSubAgency',
+						'Is Sub-Agency',
+						'Whether to return sub-agencies or main agencies',
+					),
+					agencyStatusOption,
+				]),
+			],
+		},
+		{
+			value: 'update',
+			name: 'Update',
+			action: 'Update an agency',
+			description: 'Update an agency of an insurance company',
+			method: 'PUT',
+			path: '/companies/{companyId}/agencies/{agencyInternalId}',
+			fields: [
+				companyId,
+				agencyInternalId,
+				...agencyBodyFields(),
+				additionalFields(
+					[
+						commaListOption('brokers', 'Broker IDs', 'Brokers the agency is assigned to'),
+						booleanOption('isSubAgency', 'Is Sub-Agency', 'Whether the agency is a sub-agency'),
+					],
+					{ brokers: 'commaList' },
+				),
+			],
+		},
+	],
+};
+
 export const stocksBroker: AmeiseResource = {
 	api: 'stocks',
 	value: 'stocksBroker',
 	name: 'Broker',
 	description: 'Brokers (Vermittler) and their profile data',
 	operations: [
+		...brokerExtraOperations,
 		{
 			value: 'createSubBroker',
 			name: 'Create Sub-Broker',
 			action: 'Create a sub broker',
 			description: 'Create a sub-broker below a parent broker',
 			method: 'POST',
-			path: '/brokers/{brokerId}/sub-brokers',
+			path: '/v1/brokers/{brokerId}/sub-brokers',
 			fields: [
 				{ ...brokerId, property: { ...brokerId.property, displayName: 'Parent Broker ID' } },
 				bodyField({
@@ -63,7 +365,7 @@ export const stocksBroker: AmeiseResource = {
 			action: 'Get a broker',
 			description: 'Retrieve the profile of a broker',
 			method: 'GET',
-			path: '/brokers/{brokerId}',
+			path: '/v1/brokers/{brokerId}',
 			fields: [brokerId],
 		},
 		{
@@ -72,7 +374,7 @@ export const stocksBroker: AmeiseResource = {
 			action: 'Get many brokers',
 			description: 'Retrieve brokers, optionally filtered by name, ID or ancestor',
 			method: 'GET',
-			path: '/brokers',
+			path: '/v1/brokers',
 			pagination: { maxPageSize: STOCKS_MAX_PAGE_SIZE },
 			fields: [
 				filters([
@@ -87,7 +389,7 @@ export const stocksBroker: AmeiseResource = {
 			action: 'Get the legal IDs of a broker',
 			description: 'Retrieve tax, VAT and registration numbers of a broker',
 			method: 'GET',
-			path: '/brokers/{brokerId}/legal-ids',
+			path: '/v1/brokers/{brokerId}/legal-ids',
 			fields: [brokerId],
 		},
 		{
@@ -96,7 +398,7 @@ export const stocksBroker: AmeiseResource = {
 			action: 'Get the status of a broker',
 			description: 'Retrieve the status of a broker',
 			method: 'GET',
-			path: '/brokers/{brokerId}/status',
+			path: '/v1/brokers/{brokerId}/status',
 			fields: [brokerId],
 		},
 		{
@@ -105,7 +407,7 @@ export const stocksBroker: AmeiseResource = {
 			action: 'Get the supporter of a broker',
 			description: 'Retrieve the supporter (Betreuer) of a broker',
 			method: 'GET',
-			path: '/brokers/{brokerId}/supporter',
+			path: '/v1/brokers/{brokerId}/supporter',
 			fields: [brokerId],
 		},
 		{
@@ -114,7 +416,7 @@ export const stocksBroker: AmeiseResource = {
 			action: 'Set the supporter role of a broker',
 			description: 'Grant or remove the supporter (Betreuer) role of a broker',
 			method: 'PUT',
-			path: '/brokers/{brokerId}/is-supporter',
+			path: '/v1/brokers/{brokerId}/is-supporter',
 			fields: [
 				brokerId,
 				bodyField({
@@ -132,7 +434,7 @@ export const stocksBroker: AmeiseResource = {
 			action: 'Update a broker',
 			description: 'Update name, address and communication data of a broker',
 			method: 'PUT',
-			path: '/brokers/{brokerId}',
+			path: '/v1/brokers/{brokerId}',
 			fields: [
 				brokerId,
 				updateFields([
@@ -163,7 +465,7 @@ export const stocksBroker: AmeiseResource = {
 			action: 'Update the bank account of a broker',
 			description: 'Update the bank account used in broker documents',
 			method: 'PUT',
-			path: '/brokers/{brokerId}/broker-documents-data/bank-account',
+			path: '/v1/brokers/{brokerId}/broker-documents-data/bank-account',
 			fields: [
 				brokerId,
 				bodyField({
@@ -188,7 +490,7 @@ export const stocksBroker: AmeiseResource = {
 			action: 'Update the contractual dates of a broker',
 			description: 'Replace the contract start and end date of a broker',
 			method: 'PUT',
-			path: '/brokers/{brokerId}/contractual-dates',
+			path: '/v1/brokers/{brokerId}/contractual-dates',
 			fields: [
 				brokerId,
 				bodyField(
@@ -219,7 +521,7 @@ export const stocksBroker: AmeiseResource = {
 			action: 'Update the legal IDs of a broker',
 			description: 'Update tax, VAT and registration numbers. Only chosen fields are changed.',
 			method: 'PATCH',
-			path: '/brokers/{brokerId}/legal-ids',
+			path: '/v1/brokers/{brokerId}/legal-ids',
 			fields: [
 				brokerId,
 				updateFields([
@@ -253,7 +555,7 @@ export const stocksBroker: AmeiseResource = {
 			action: 'Update the legal status of a broker',
 			description: 'Update the legal status ("Tätig als") of a broker',
 			method: 'PUT',
-			path: '/brokers/{brokerId}/legal-status',
+			path: '/v1/brokers/{brokerId}/legal-status',
 			fields: [
 				brokerId,
 				bodyField(
@@ -279,7 +581,7 @@ export const stocksBroker: AmeiseResource = {
 			action: 'Update the status of a broker',
 			description: 'Activate, lock or delete a broker',
 			method: 'PUT',
-			path: '/brokers/{brokerId}/status',
+			path: '/v1/brokers/{brokerId}/status',
 			fields: [
 				brokerId,
 				bodyField({
@@ -318,23 +620,17 @@ export const stocksEmployee: AmeiseResource = {
 	value: 'stocksEmployee',
 	name: 'Broker Employee',
 	operations: [
+		...employeeExtraOperations,
 		{
 			value: 'create',
 			name: 'Create',
 			action: 'Create a broker employee',
 			description: 'Create an employee for a broker and send the access data mail',
 			method: 'POST',
-			path: '/brokers/{brokerId}/employees',
+			path: '/v1/brokers/{brokerId}/employees',
 			fields: [
 				brokerId,
-				bodyField({
-					displayName: 'Salutation ID',
-					name: 'salutationId',
-					type: 'string',
-					required: true,
-					default: '1',
-					description: salutationDescription,
-				}),
+				bodyField(salutationOption('salutationId', true)),
 				bodyField({
 					displayName: 'Last Name',
 					name: 'lastname',
@@ -379,7 +675,7 @@ export const stocksEmployee: AmeiseResource = {
 			action: 'Get a broker employee',
 			description: 'Retrieve the profile of a broker employee',
 			method: 'GET',
-			path: '/employees/{employeeId}',
+			path: '/v1/employees/{employeeId}',
 			fields: [employeeId],
 		},
 		{
@@ -388,7 +684,7 @@ export const stocksEmployee: AmeiseResource = {
 			action: 'Update a broker employee',
 			description: 'Update the profile of a broker employee. Only chosen fields are changed.',
 			method: 'PATCH',
-			path: '/employees/{employeeId}',
+			path: '/v1/employees/{employeeId}',
 			fields: [
 				employeeId,
 				updateFields(
@@ -403,7 +699,7 @@ export const stocksEmployee: AmeiseResource = {
 						stringOption('lastname', 'Last Name'),
 						stringOption('mobile', 'Mobile'),
 						stringOption('phone', 'Phone'),
-						stringOption('salutation', 'Salutation ID', salutationDescription),
+						salutationOption('salutation'),
 						stringOption('street', 'Street'),
 						stringOption('username', 'Username'),
 						stringOption('zip', 'Zip'),
@@ -427,7 +723,7 @@ export const stocksCompany: AmeiseResource = {
 			action: 'Get a company',
 			description: 'Retrieve an insurance company',
 			method: 'GET',
-			path: '/companies/{companyId}',
+			path: '/v1/companies/{companyId}',
 			fields: [pathParam('companyId', 'Company ID', 'ID of the insurance company')],
 		},
 		{
@@ -436,7 +732,7 @@ export const stocksCompany: AmeiseResource = {
 			action: 'Get many companies',
 			description: 'Retrieve insurance companies',
 			method: 'GET',
-			path: '/companies',
+			path: '/v1/companies',
 			pagination: { maxPageSize: STOCKS_MAX_PAGE_SIZE },
 			fields: [
 				filters([
@@ -456,7 +752,7 @@ export const stocksCompany: AmeiseResource = {
 			description:
 				'Retrieve valid agencies for a company, insurance line, broker and contract status',
 			method: 'GET',
-			path: '/companies/{companyId}/agencies/valid',
+			path: '/v1/companies/{companyId}/agencies/valid',
 			fields: [
 				pathParam('companyId', 'Company ID', 'ID of the insurance company'),
 				queryField({
@@ -488,7 +784,7 @@ export const stocksCompany: AmeiseResource = {
 			action: 'Get the valid agencies for a BaFin number',
 			description: 'Retrieve valid agencies of the company with a BaFin number',
 			method: 'GET',
-			path: '/bafin/{bafinNumber}/agencies/valid',
+			path: '/v1/bafin/{bafinNumber}/agencies/valid',
 			fields: [
 				pathParam('bafinNumber', 'BaFin Number', 'BaFin number of the insurance company'),
 				queryField({
@@ -516,16 +812,22 @@ export const stocksDictionary: AmeiseResource = {
 			'getBlockedReasons',
 			'Get Blocked Reasons',
 			'customer blocked reasons',
-			'/customer/blocked-reasons',
+			'/v1/customer/blocked-reasons',
 			'items',
 		),
 		dictionaryOperation(
 			'getLegalForms',
 			'Get Legal Forms',
 			'legal forms',
-			'/customer/legal-forms',
+			'/v1/customer/legal-forms',
 			'items',
 		),
-		dictionaryOperation('getNations', 'Get Nations', 'nations', '/customer/nations', 'items'),
+		dictionaryOperation('getNations', 'Get Nations', 'nations', '/v1/customer/nations', 'items'),
+		dictionaryOperation(
+			'getSalutations',
+			'Get Salutations',
+			'salutations',
+			'/customer/salutations',
+		),
 	],
 };

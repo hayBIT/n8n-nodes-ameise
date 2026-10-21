@@ -17,6 +17,7 @@ import {
 	legalFormOption,
 	nationOption,
 	salutationDescription,
+	salutationOption,
 	STOCKS_MAX_PAGE_SIZE,
 } from './common';
 
@@ -69,21 +70,41 @@ export const stocksCustomer: AmeiseResource = {
 	name: 'Customer',
 	operations: [
 		{
+			value: 'getAllTags',
+			name: 'Get All Tags',
+			action: 'Get all customer tags',
+			description:
+				'Retrieve all unique tags assigned to any customer in scope of the logged-in user',
+			method: 'GET',
+			path: '/customer/tags/all',
+		},
+		{
+			value: 'getState',
+			name: 'Get State',
+			action: 'Get the state of a customer',
+			description: 'Retrieve block status, alive status and broker mandate termination date',
+			method: 'GET',
+			path: '/customer/state/{customerId}',
+			fields: [customerId],
+		},
+		{
+			value: 'getTags',
+			name: 'Get Tags',
+			action: 'Get the tags of a customer',
+			description: 'Retrieve the tags assigned to a customer',
+			method: 'GET',
+			path: '/customer/tags/{customerId}',
+			fields: [customerId],
+		},
+		{
 			value: 'create',
 			name: 'Create',
 			action: 'Create a customer',
 			description: 'Create a customer with personal, address and contact data',
 			method: 'POST',
-			path: '/customers',
+			path: '/v1/customers',
 			fields: [
-				bodyField({
-					displayName: 'Salutation ID',
-					name: 'salutationId',
-					type: 'string',
-					required: true,
-					default: '1',
-					description: salutationDescription,
-				}),
+				bodyField({ ...salutationOption('salutationId', true), hint: salutationDescription }),
 				bodyField(
 					{
 						displayName: 'Last Name',
@@ -144,7 +165,7 @@ export const stocksCustomer: AmeiseResource = {
 			action: 'Get a customer',
 			description: 'Retrieve the profile of a customer',
 			method: 'GET',
-			path: '/customers/{customerId}',
+			path: '/v1/customers/{customerId}',
 			fields: [customerId],
 		},
 		{
@@ -153,7 +174,7 @@ export const stocksCustomer: AmeiseResource = {
 			action: 'Get many customers',
 			description: 'Retrieve customers accessible to the logged-in broker',
 			method: 'GET',
-			path: '/customers',
+			path: '/v1/customers',
 			pagination: { maxPageSize: STOCKS_MAX_PAGE_SIZE },
 			fields: [filters(listFilters, listTransforms)],
 		},
@@ -163,7 +184,7 @@ export const stocksCustomer: AmeiseResource = {
 			action: 'Get many customers of a broker',
 			description: 'Retrieve customers assigned to a broker',
 			method: 'GET',
-			path: '/brokers/{brokerId}/customers',
+			path: '/v1/brokers/{brokerId}/customers',
 			pagination: { maxPageSize: STOCKS_MAX_PAGE_SIZE },
 			fields: [
 				brokerId,
@@ -183,7 +204,7 @@ export const stocksCustomer: AmeiseResource = {
 			action: 'Get the change logs of a customer',
 			description: 'Retrieve the change logs of a customer',
 			method: 'GET',
-			path: '/customers/{customerId}/logs',
+			path: '/v1/customers/{customerId}/logs',
 			pagination: { maxPageSize: STOCKS_MAX_PAGE_SIZE },
 			fields: [
 				customerId,
@@ -204,7 +225,7 @@ export const stocksCustomer: AmeiseResource = {
 			action: 'Get customer names',
 			description: 'Retrieve the display names of a set of customers',
 			method: 'GET',
-			path: '/customers/names',
+			path: '/v1/customers/names',
 			fields: [
 				queryField(
 					{
@@ -226,7 +247,7 @@ export const stocksCustomer: AmeiseResource = {
 			action: 'Send a notification to a customer',
 			description: 'Send login data, a password reset or initial information to a customer',
 			method: 'POST',
-			path: '/customers/{customerId}/notifications',
+			path: '/v1/customers/{customerId}/notifications',
 			fields: [
 				customerId,
 				bodyField({
@@ -250,7 +271,7 @@ export const stocksCustomer: AmeiseResource = {
 			description:
 				'Update the basic data of a customer. Personal and company customers accept different fields.',
 			method: 'PUT',
-			path: '/customers/{customerId}',
+			path: '/v1/customers/{customerId}',
 			fields: [
 				customerId,
 				updateFields([
@@ -269,7 +290,7 @@ export const stocksCustomer: AmeiseResource = {
 					nationOption('nationality', 'Nationality'),
 					stringOption('occupation', 'Occupation', 'Personal customers only'),
 					stringOption('operationMode', 'Operation Mode', 'Company customers only, e.g. B2B'),
-					stringOption('salutationId', 'Salutation ID', salutationDescription),
+					salutationOption('salutationId'),
 					stringOption('specialization', 'Specialization'),
 					stringOption('title', 'Title', 'Personal customers only, e.g. Dr.'),
 				]),
@@ -281,7 +302,7 @@ export const stocksCustomer: AmeiseResource = {
 			action: 'Update the block type of a customer',
 			description: 'Update the block type of a customer (Mandant brokers only)',
 			method: 'PUT',
-			path: '/customers/{customerId}/block-type',
+			path: '/v1/customers/{customerId}/block-type',
 			fields: [
 				customerId,
 				bodyField(
@@ -304,7 +325,7 @@ export const stocksCustomer: AmeiseResource = {
 			action: 'Update the broker of a customer',
 			description: 'Assign a customer to another broker',
 			method: 'PUT',
-			path: '/customers/{customerId}/broker',
+			path: '/v1/customers/{customerId}/broker',
 			fields: [
 				customerId,
 				bodyField({
@@ -329,7 +350,7 @@ export const stocksCustomer: AmeiseResource = {
 			action: 'Update the state of a customer',
 			description: 'Update the alive status and broker mandate termination date of a customer',
 			method: 'PUT',
-			path: '/customers/{customerId}/state',
+			path: '/v1/customers/{customerId}/state',
 			fields: [
 				customerId,
 				bodyField({
@@ -351,7 +372,7 @@ export const stocksCustomer: AmeiseResource = {
 			action: 'Replace the tags of a customer',
 			description: 'Overwrite the full set of tags assigned to a customer',
 			method: 'PUT',
-			path: '/customers/{customerId}/tags',
+			path: '/v1/customers/{customerId}/tags',
 			fields: [
 				customerId,
 				bodyField(
@@ -380,7 +401,7 @@ export const stocksCustomerNote: AmeiseResource = {
 			action: 'Create a customer note',
 			description: 'Create a note for a customer',
 			method: 'POST',
-			path: '/customers/{customerId}/notes',
+			path: '/v1/customers/{customerId}/notes',
 			fields: [customerId, ...noteFields()],
 		},
 		{
@@ -389,7 +410,7 @@ export const stocksCustomerNote: AmeiseResource = {
 			action: 'Delete a customer note',
 			description: 'Delete a note of a customer',
 			method: 'DELETE',
-			path: '/customers/{customerId}/notes/{noteId}',
+			path: '/v1/customers/{customerId}/notes/{noteId}',
 			fields: [customerId, noteId],
 		},
 		{
@@ -398,7 +419,7 @@ export const stocksCustomerNote: AmeiseResource = {
 			action: 'Get many customer notes',
 			description: 'Retrieve the notes of a customer',
 			method: 'GET',
-			path: '/customers/{customerId}/notes',
+			path: '/v1/customers/{customerId}/notes',
 			pagination: { maxPageSize: STOCKS_MAX_PAGE_SIZE },
 			fields: [customerId],
 		},
@@ -408,7 +429,7 @@ export const stocksCustomerNote: AmeiseResource = {
 			action: 'Update a customer note',
 			description: 'Update a note of a customer',
 			method: 'PUT',
-			path: '/customers/{customerId}/notes/{noteId}',
+			path: '/v1/customers/{customerId}/notes/{noteId}',
 			fields: [customerId, noteId, ...noteFields()],
 		},
 	],

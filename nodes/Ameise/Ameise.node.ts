@@ -12,6 +12,7 @@ import {
 	getStocksCancellationReasons,
 	getStocksLegalForms,
 	getStocksNations,
+	getStocksSalutations,
 } from './methods/loadOptions';
 import { resources } from './resources';
 import type { AmeiseApiName } from './shared/constants';
@@ -74,6 +75,7 @@ export class Ameise implements INodeType {
 			getStocksCancellationReasons,
 			getStocksLegalForms,
 			getStocksNations,
+			getStocksSalutations,
 		},
 	};
 

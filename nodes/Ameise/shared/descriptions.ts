@@ -1,5 +1,5 @@
 import type { INodeProperties } from 'n8n-workflow';
-import { API_DISPLAY_NAMES, type AmeiseApiName } from './constants';
+import { API_DISPLAY_NAMES, API_ORDER, type AmeiseApiName } from './constants';
 import type { AmeiseOperation, AmeiseResource } from './types';
 
 const byName = <T extends { name: string }>(a: T, b: T) => a.name.localeCompare(b.name);
@@ -48,7 +48,7 @@ function withDisplayOptions(
 }
 
 export function buildProperties(resources: AmeiseResource[]): INodeProperties[] {
-	const apis = [...new Set(resources.map((resource) => resource.api))].sort();
+	const apis = API_ORDER.filter((api) => resources.some((resource) => resource.api === api));
 
 	const properties: INodeProperties[] = [
 		{
