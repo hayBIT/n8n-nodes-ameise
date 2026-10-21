@@ -40,6 +40,14 @@ export class AmeiseOAuth2Api implements ICredentialType {
 			default: '',
 		},
 		{
+			// Expiry of the access token (ms timestamp), read by n8n to tell an
+			// expired token from a real 403
+			displayName: 'Access Token Expires At',
+			name: 'n8n_expires_at',
+			type: 'hidden',
+			default: '',
+		},
+		{
 			displayName: 'Service Account (JSON)',
 			name: 'serviceAccountSecret',
 			type: 'string',
@@ -79,7 +87,13 @@ export class AmeiseOAuth2Api implements ICredentialType {
 			json: true,
 		})) as IDataObject;
 
-		return { accessToken: response.access_token as string };
+		const expiresIn = Number(response.expires_in);
+		return {
+			accessToken: response.access_token as string,
+			...(Number.isFinite(expiresIn) && expiresIn > 0
+				? { n8n_expires_at: String(Date.now() + expiresIn * 1000) }
+				: {}),
+		};
 	}
 
 	authenticate: IAuthenticateGeneric = {

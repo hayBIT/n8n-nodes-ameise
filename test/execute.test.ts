@@ -78,6 +78,10 @@ describe('execution', () => {
 		expect(context.helpers.httpRequestWithAuthentication).toHaveBeenCalledWith(
 			'ameiseOAuth2Api',
 			expect.anything(),
+			{
+				preAuthenticationRetryStatusCode: [401, 403],
+				skipPreAuthenticationRetryWhileTokenIsFresh: true,
+			},
 		);
 	});
 
@@ -94,6 +98,11 @@ describe('execution', () => {
 		expect(requests).toHaveLength(1);
 		expect(requests[0].url).toBe('https://stocks.ameiseapis.com/api/v1/customers/7/notes');
 		expect(requests[0].qs).toMatchObject({ page: 1, pageSize: 3 });
+		expect(context.helpers.httpRequestWithAuthentication).toHaveBeenCalledWith(
+			'ameiseApi',
+			expect.anything(),
+			undefined,
+		);
 	});
 
 	it('returns downloaded files as binary data', async () => {

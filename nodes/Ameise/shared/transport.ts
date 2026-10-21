@@ -1,4 +1,5 @@
 import type {
+	IAdditionalCredentialOptions,
 	IDataObject,
 	IExecuteFunctions,
 	IHttpRequestMethods,
@@ -15,6 +16,15 @@ export const CREDENTIAL_TYPES = {
 	accessToken: 'ameiseApi',
 	oAuth2: 'ameiseOAuth2Api',
 } as const;
+
+/**
+ * The service account token is renewed on 401, and on 403 if the stored
+ * expiry (`n8n_expires_at`) has passed; a 403 with a fresh token stays an error.
+ */
+export const OAUTH2_RETRY_OPTIONS: IAdditionalCredentialOptions = {
+	preAuthenticationRetryStatusCode: [401, 403],
+	skipPreAuthenticationRetryWhileTokenIsFresh: true,
+};
 
 export interface AmeiseRequestOptions {
 	qs?: IDataObject;
@@ -78,6 +88,7 @@ export async function ameiseApiRequest(
 			this,
 			credentialType,
 			requestOptions,
+			credentialType === CREDENTIAL_TYPES.oAuth2 ? OAUTH2_RETRY_OPTIONS : undefined,
 		);
 	} catch (error) {
 		throw new NodeApiError(this.getNode(), error as JsonObject);
