@@ -1,0 +1,20 @@
+# Starts n8n with the Ameise node built in:
+#   docker compose -f docker-compose.example.yml up --build
+#
+# In an existing setup, replace `image: n8nio/n8n` of your n8n service with
+#   build: /path/to/n8n-nodes-ameise
+# and run `docker compose up -d --build`.
+services:
+  n8n:
+    build: .
+    ports:
+      - '5678:5678'
+    environment:
+      - GENERIC_TIMEZONE=Europe/Berlin
+      - TZ=Europe/Berlin
+    volumes:
+      - n8n_data:/home/node/.n8n
+    restart: unless-stopped
+
+volumes:
+  n8n_data:

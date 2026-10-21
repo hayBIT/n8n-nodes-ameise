@@ -10,7 +10,33 @@ n8n Community Node für die **Ameise-APIs** von blau direkt. Mit einem einzigen 
 
 ## Installation
 
-In n8n unter **Settings → Community Nodes → Install** den Paketnamen `n8n-nodes-ameise` eintragen. Details stehen in der [Installationsanleitung](https://docs.n8n.io/integrations/community-nodes/installation/).
+Sobald das Paket auf npm veröffentlicht ist: In n8n unter **Settings → Community Nodes → Install** den Paketnamen `n8n-nodes-ameise` eintragen. Details stehen in der [Installationsanleitung](https://docs.n8n.io/integrations/community-nodes/installation/).
+
+### Testen ohne npm-Release (Docker)
+
+**Schnell: Dateien in einen bestehenden Container kopieren**
+
+```bash
+git clone https://github.com/hayBIT/n8n-nodes-ameise && cd n8n-nodes-ameise
+npm ci && npm run build                     # erzeugt den Ordner dist/
+docker exec <container> mkdir -p /home/node/.n8n/custom
+docker cp dist <container>:/home/node/.n8n/custom/n8n-nodes-ameise
+docker restart <container>
+```
+
+n8n lädt beim Start alles aus `~/.n8n/custom`. Liegt `/home/node/.n8n` auf einem Volume (Standard bei Docker Compose), bleibt der Node auch nach Updates des Containers erhalten. Für eine neue Version kopiert ihr `dist` einfach erneut und startet neu.
+
+**Dauerhaft: eigenes Image bauen**
+
+Das `Dockerfile` im Repo baut den Node und legt ihn in ein offizielles n8n-Image (Version per `--build-arg N8N_VERSION=…`):
+
+```bash
+docker compose -f docker-compose.example.yml up --build
+# oder im eigenen Compose beim n8n-Service `image: n8nio/n8n` ersetzen durch:
+#   build: /pfad/zu/n8n-nodes-ameise
+```
+
+**Hinweis:** So geladen heißt der Node-Typ `CUSTOM.ameise`, nach einer späteren npm-Installation `n8n-nodes-ameise.ameise`. Nodes in Test-Workflows müssen nach dem Umstieg einmal neu eingefügt werden. Nicht beides gleichzeitig installieren.
 
 ## Credentials
 
