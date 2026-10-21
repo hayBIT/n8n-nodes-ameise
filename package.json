@@ -17,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hayBIT/n8n-nodes-ameise.git"
+    "url": "git+https://github.com/hayBIT/n8n-nodes-ameise.git"
   },
   "scripts": {
     "build": "n8n-node build",
