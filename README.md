@@ -65,7 +65,13 @@ Credential **Ameise Service Account OAuth2 API**. Sie nutzt den JWT-Bearer-Grant
 2. Das **komplette JSON** in das Feld *Service Account (JSON)* einfügen.
 3. Optional *Scope* setzen, z. B. `ameise.stocks panda ameise.customer-archives`. Ist das Feld leer, werden alle Scopes des ServiceAccounts angefragt.
 
-n8n signiert für jede Token-Anfrage eine neue Assertion (ES512 mit dem `jwk`, Gültigkeit 5 Sekunden, neue `jti`). Der Access-Token wird mit seinem Ablaufzeitpunkt (`expires_in`) verschlüsselt in der Credential gespeichert und über Ausführungen hinweg wiederverwendet. Neu geholt wird er, wenn eine API mit `401` antwortet oder mit `403` bei abgelaufenem Token. Ein `403` bei gültigem Token (fehlende Rechte) wird als Fehler angezeigt. Beachtet das `expires_at` des ServiceAccounts und erneuert ihn rechtzeitig.
+n8n signiert für jede Token-Anfrage eine neue Assertion (ES512 mit dem `jwk`, Gültigkeit 5 Sekunden, neue `jti`). Der Access-Token wird mit seinem Ablaufzeitpunkt (`expires_in`, laut Ameise 3600 Sekunden) verschlüsselt in der Credential gespeichert und bis zum Ablauf über alle Ausführungen hinweg wiederverwendet.
+
+- **Erneuerung:** Beim ersten Request nach Ablauf antwortet die API mit `401` (bzw. `403`). n8n holt dann einen neuen Token und wiederholt den Request automatisch. Ein `403` bei gültigem Token (fehlende Rechte) wird als Fehler angezeigt.
+- **Parallele Ausführungen:** Starten mehrere Ausführungen gleichzeitig, während kein gültiger Token vorliegt, kann es vereinzelt mehrere Token-Anfragen geben.
+- **Credential-Test:** Der Test in den n8n-Credential-Einstellungen holt immer einen frischen Token.
+
+Beachtet das `expires_at` des ServiceAccounts und erneuert ihn rechtzeitig.
 
 ### Access Token
 
