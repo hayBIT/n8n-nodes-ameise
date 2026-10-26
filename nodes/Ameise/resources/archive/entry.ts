@@ -157,6 +157,22 @@ export const archiveEntry: AmeiseResource = {
 					default: false,
 					description: 'Whether the entry is visible to the customer',
 				}),
+				bodyField({
+					displayName: 'Notify Customer',
+					name: 'sendNotification',
+					type: 'boolean',
+					default: false,
+					description:
+						'Whether to notify the customer about the new entry. Only possible for public entries.',
+					displayOptions: { show: { isPublic: [true] } },
+				}),
+				bodyField({
+					displayName: 'Subject',
+					name: 'subject',
+					type: 'string',
+					default: '',
+					description: 'Shown as subject in the archive and in the customer notification',
+				}),
 				localField({
 					displayName: 'Files',
 					name: 'files',
@@ -213,12 +229,6 @@ export const archiveEntry: AmeiseResource = {
 						metadataOption,
 						booleanOption('notifyBroker', 'Notify Broker', 'Whether to notify the broker'),
 						booleanOption('requiresReview', 'Requires Review', 'Whether the entry needs a review'),
-						booleanOption(
-							'sendNotification',
-							'Send Notification',
-							'Whether to notify the customer about the new entry',
-						),
-						stringOption('subject', 'Subject'),
 						tagsOption,
 						stringOption('text', 'Text', undefined, { typeOptions: { rows: 5 } }),
 					],
@@ -226,6 +236,8 @@ export const archiveEntry: AmeiseResource = {
 				),
 			],
 			async preSend(itemIndex, request) {
+				// Customers can only be notified about entries they can see
+				if (request.body.isPublic !== true) delete request.body.sendNotification;
 				normalizeMetadata(request);
 				await attachFiles.call(this, itemIndex, request);
 			},

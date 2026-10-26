@@ -182,6 +182,27 @@ describe('execution', () => {
 		expect(requests[0].body).toEqual({ base64: Buffer.from('hello').toString('base64') });
 	});
 
+	it('only sends the customer notification for public archive entries', async () => {
+		const { resource, operation: create } = operation('archive', 'archiveEntry', 'create');
+		for (const isPublic of [true, false]) {
+			const { context, requests } = createContext({
+				customerId: '7',
+				archiveType: 'chat',
+				isPublic,
+				sendNotification: true,
+				subject: 'Hinweis',
+				files: {},
+			});
+			await executeOperation.call(context, resource, create, 0);
+			expect(requests[0].body).toEqual({
+				archiveType: 'chat',
+				isPublic,
+				subject: 'Hinweis',
+				...(isPublic ? { sendNotification: true } : {}),
+			});
+		}
+	});
+
 	it('wraps primitive arrays and reports success for empty responses', async () => {
 		const tags = operation('archive', 'archiveTag', 'getCustomerFavourites');
 		const result = await executeOperation.call(
