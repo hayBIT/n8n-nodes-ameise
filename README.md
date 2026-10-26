@@ -14,13 +14,28 @@ Sobald das Paket auf npm veröffentlicht ist: In n8n unter **Settings → Commun
 
 ### Testen ohne npm-Release (Docker)
 
-**Schnell: Dateien in einen bestehenden Container kopieren**
+**Am schnellsten: Dev-Build mit einem Befehl einspielen**
+
+Bei jedem Push auf `main` baut GitHub den Node und stellt ihn als Pre-Release [`dev`](https://github.com/hayBIT/n8n-nodes-ameise/releases/tag/dev) bereit. Auf dem Docker-Host (braucht nur `curl`, `tar` und `docker`):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hayBIT/n8n-nodes-ameise/main/scripts/update-dev.sh | sh -s -- <container>
+```
+
+Das Skript lädt den aktuellen Build, ersetzt `/home/node/.n8n/custom/n8n-nodes-ameise` im Container und zeigt den eingespielten Commit an.
+
+- Mit `N8N_DEV_RELOAD=true` in der Umgebung des n8n-Containers lädt n8n den Node **ohne Neustart** neu. Danach im Browser nur den Editor neu laden.
+- Ohne die Variable startet das Skript den Container neu (Option `--restart` erzwingt das immer).
+- `N8N_DEV_RELOAD=true` schaltet in n8n den Endpunkt `POST /rest/dev/reload` frei, der ohne Anmeldung die Custom-Nodes neu lädt. Für Test-Instanzen gedacht; auf einer öffentlich erreichbaren Produktivinstanz besser weglassen.
+
+**Manuell: Dateien in einen bestehenden Container kopieren**
 
 ```bash
 git clone https://github.com/hayBIT/n8n-nodes-ameise && cd n8n-nodes-ameise
 npm ci && npm run build                     # erzeugt den Ordner dist/
-docker exec <container> mkdir -p /home/node/.n8n/custom
+docker exec -u root <container> sh -c 'rm -rf /home/node/.n8n/custom/n8n-nodes-ameise && mkdir -p /home/node/.n8n/custom'
 docker cp dist <container>:/home/node/.n8n/custom/n8n-nodes-ameise
+docker exec -u root <container> chown -R node:node /home/node/.n8n/custom
 docker restart <container>
 ```
 
