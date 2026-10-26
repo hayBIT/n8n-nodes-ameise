@@ -170,6 +170,7 @@ export const archiveEntry: AmeiseResource = {
 					displayName: 'Subject',
 					name: 'subject',
 					type: 'string',
+					required: true,
 					default: '',
 					description: 'Shown as subject in the archive and in the customer notification',
 				}),
