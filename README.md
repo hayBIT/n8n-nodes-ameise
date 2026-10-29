@@ -169,3 +169,7 @@ Getestet mit n8n 2.44 (Node.js 24).
 ## Version history
 
 Siehe [CHANGELOG.md](CHANGELOG.md).
+
+## Lizenz
+
+[MIT](LICENSE)
