@@ -1,0 +1,23 @@
+# Manual check of the NPM_TOKEN secret. Publishes nothing.
+name: npm check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Check token
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then echo "NPM_TOKEN is empty"; exit 1; fi
+          echo "Token length: ${#NODE_AUTH_TOKEN}, prefix: ${NODE_AUTH_TOKEN:0:4}"
+          echo "whoami:"; npm whoami || true
+          echo "package exists:"; npm view n8n-nodes-ameise name 2>&1 | head -2 || true
+          echo "profile:"; npm profile get --json 2>&1 | grep -E '"(name|email_verified|tfa)"|tfa|error|code' | head -8 || true
