@@ -43,7 +43,7 @@ export const archiveTypeOptions = [
 
 const listTransforms: Record<string, FieldTransform> = {
 	tags: 'commaList',
-	contracts: 'commaList',
+	contracts: 'numberList',
 	contractLines: 'commaList',
 };
 

@@ -30,6 +30,17 @@ export function toList(value: unknown): string[] {
 		.filter((entry) => entry !== '');
 }
 
+/** Like `toList`, but converts every entry to a number ("1, 2" → [1, 2]) */
+export function toNumberList(value: unknown): number[] {
+	return toList(value).map((entry) => {
+		const parsed = Number(entry);
+		if (Number.isNaN(parsed)) {
+			throw new Error(`"${entry}" is not a valid number`);
+		}
+		return parsed;
+	});
+}
+
 export function parseJson(value: unknown): unknown {
 	if (typeof value !== 'string') return value;
 	if (value.trim() === '') return undefined;
@@ -40,6 +51,8 @@ export function applyTransform(value: unknown, transform?: FieldTransform): unkn
 	switch (transform) {
 		case 'commaList':
 			return toList(value);
+		case 'numberList':
+			return toNumberList(value);
 		case 'json':
 			return parseJson(value);
 		case 'nullIfEmpty':
