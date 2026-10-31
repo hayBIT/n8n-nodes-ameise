@@ -21,10 +21,11 @@ export type FieldLocation = 'path' | 'query' | 'body' | 'none';
 /**
  * Optional value conversions applied before a value is sent.
  * - `commaList`: "a, b" → ["a", "b"]
+ * - `numberList`: "1, 2" → [1, 2]
  * - `json`: parse a JSON string (objects/arrays are passed through)
  * - `nullIfEmpty`: "" → null (used to explicitly clear values)
  */
-export type FieldTransform = 'commaList' | 'json' | 'nullIfEmpty';
+export type FieldTransform = 'commaList' | 'numberList' | 'json' | 'nullIfEmpty';
 
 export type AmeiseFieldProperty = Omit<INodeProperties, 'displayOptions'> & {
 	displayOptions?: INodeProperties['displayOptions'];
