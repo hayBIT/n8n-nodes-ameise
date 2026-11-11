@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
 Stocks an die aktualisierte OpenAPI-Spezifikation angepasst:
 
@@ -10,6 +10,10 @@ Stocks an die aktualisierte OpenAPI-Spezifikation angepasst:
 - Contract „Update Bank Account“ nutzt `PUT /api/v1/contracts/{contractId}/bank-accounts`: neues Pflichtfeld Zahlungsweise (Standard: Lastschrift); die Bankverbindung wird nur bei Lastschrift gesendet, sonst `null`. **In bestehenden Workflows müssen die optionalen Kontoinhaber-Felder (Name, Adresse, Geburtsdatum, Nation) neu gesetzt werden**, IBAN bleibt erhalten.
 - Customer Communication „Get Many“ nutzt `GET /api/v1/customers/{customerId}/communications`
 - Customer Address „Create Additional Address“ nutzt `POST /api/v1/customers/{customerId}/additional-addresses` und gibt nur noch die ID der neuen Adresse zurück
+
+## 0.1.1
+
+- Archive: Vertrags-IDs von Archiveinträgen werden als Zahlen gesendet
 
 ## 0.1.0
 
