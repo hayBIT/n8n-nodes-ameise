@@ -54,7 +54,7 @@ export const stocksCustomerCommunication: AmeiseResource = {
 			description:
 				'Retrieve phone numbers, mobile numbers, email addresses and websites of a customer',
 			method: 'GET',
-			path: '/customers/{customerId}/communications',
+			path: '/v1/customers/{customerId}/communications',
 			fields: [customerId],
 		},
 		{
@@ -168,9 +168,9 @@ export const stocksCustomerAddress: AmeiseResource = {
 			value: 'createAdditional',
 			name: 'Create Additional Address',
 			action: 'Create an additional address',
-			description: 'Add an additional address to a customer and return all additional addresses',
+			description: 'Add an additional address to a customer and return its ID',
 			method: 'POST',
-			path: '/customer/additional-addresses/{customerId}',
+			path: '/v1/customers/{customerId}/additional-addresses',
 			fields: [
 				customerId,
 				bodyField({
@@ -181,7 +181,11 @@ export const stocksCustomerAddress: AmeiseResource = {
 					required: true,
 					default: 'sonstiges',
 				}),
-				bodyField({ ...nationOption('nation', 'Country', true), default: 'de' }),
+				// The parameter keeps its name so existing workflows stay valid
+				bodyField(
+					{ ...nationOption('nation', 'Country', true), default: 'de' },
+					{ key: 'countryCode' },
+				),
 				additionalFields([
 					stringOption('addressSupplement', 'Address Supplement'),
 					stringOption('city', 'City'),

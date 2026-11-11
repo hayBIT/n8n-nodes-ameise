@@ -78,6 +78,14 @@ const bankAccountOptions: INodeProperties[] = [
 	stringOption('bankAccount__zip', 'Bank Account Holder Zip'),
 ];
 
+/** Shows a field only for the payment method "lastschrift" (direct debit) */
+function forDirectDebit(field: AmeiseField): AmeiseField {
+	return {
+		...field,
+		property: { ...field.property, displayOptions: { show: { paymentMethod: ['lastschrift'] } } },
+	};
+}
+
 const stateGroupsOption: INodeProperties = {
 	displayName: 'State Groups',
 	name: 'stateGroups',
@@ -292,16 +300,17 @@ const contractReadOperations: AmeiseOperation[] = [
 	},
 	{
 		value: 'getSumOfPremiums',
-		name: 'Get Sum of Premiums',
-		action: 'Get the sum of premiums of a customer',
-		description: 'Retrieve the sum of the premiums of the contracts of a customer',
+		name: 'Get Premiums Total',
+		action: 'Get the premiums total of a customer',
+		description:
+			'Retrieve the yearly net, gross and tax premium of the contracts of a customer (one-time payments are not counted)',
 		method: 'GET',
-		path: '/contracts/get-sum-of-premiums/{customerId}',
+		path: '/v1/customers/{customerId}/contracts/premiums-total',
 		fields: [
 			customerId,
 			filters(
 				[
-					commaListOption('ids', 'Contract IDs', 'Only these contracts'),
+					commaListOption('ids', 'Contract IDs', 'Only these contracts (max. 200)'),
 					commaListOption('lineIds', 'Line IDs', 'Only contracts of these lines (Sparten)'),
 					stateGroupsOption,
 				],
@@ -336,31 +345,45 @@ const contractReadOperations: AmeiseOperation[] = [
 		value: 'updateBankAccount',
 		name: 'Update Bank Account',
 		action: 'Update the bank account of a contract',
-		description: 'Change the bank account and billing information of a contract',
+		description:
+			'Set the payment method of a contract. Direct debit replaces the stored bank account, other methods leave it untouched.',
 		method: 'PUT',
-		path: '/contracts/bank-accounts/{contractId}',
+		path: '/v1/contracts/{contractId}/bank-accounts',
 		fields: [
 			contractId,
-			bodyField({ displayName: 'IBAN', name: 'iban', type: 'string', required: true, default: '' }),
-			additionalFields([
-				stringOption(
-					'birthdate',
-					'Account Holder Birthdate',
-					'ISO 8601, e.g. 1990-05-21T00:00:00+00:00',
+			bodyField({ ...paymentMethodOption, required: true }),
+			forDirectDebit(
+				bodyField(
+					{ displayName: 'IBAN', name: 'iban', type: 'string', required: true, default: '' },
+					{ key: 'bankAccount__iban' },
 				),
-				stringOption('city', 'Account Holder City'),
-				booleanOption(
-					'deviant',
-					'Account Holder Deviates',
-					'Whether the account holder differs from the customer',
+			),
+			forDirectDebit(
+				bodyField(
+					{
+						displayName: 'Account Holder Deviates',
+						name: 'deviant',
+						type: 'boolean',
+						default: false,
+						description: 'Whether the account holder differs from the customer',
+					},
+					{ key: 'bankAccount__deviant' },
 				),
-				stringOption('firstname', 'Account Holder First Name'),
-				stringOption('lastname', 'Account Holder Last Name'),
-				nationOption('nation', 'Account Holder Nation'),
-				stringOption('street', 'Account Holder Street'),
-				stringOption('zip', 'Account Holder Zip'),
-			]),
+			),
+			forDirectDebit(
+				additionalFields(
+					bankAccountOptions.filter(
+						(option) => !['bankAccount__deviant', 'bankAccount__iban'].includes(option.name),
+					),
+				),
+			),
 		],
+		async preSend(_itemIndex, request) {
+			// Only direct debit carries bank data, any other method requires `bankAccount: null`
+			if (request.body.paymentMethod !== 'lastschrift') {
+				request.body.bankAccount = null;
+			}
+		},
 	},
 ];
 

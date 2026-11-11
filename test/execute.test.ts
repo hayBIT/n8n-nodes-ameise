@@ -52,6 +52,45 @@ describe('request building', () => {
 		);
 		expect(request.body).toEqual({ title: null, lastname: 'Doe' });
 	});
+
+	it('sends the contract bank account only for direct debit', async () => {
+		const { resource, operation: update } = operation(
+			'stocks',
+			'stocksContract',
+			'updateBankAccount',
+		);
+
+		const debit = createContext({
+			contractId: '5',
+			paymentMethod: 'lastschrift',
+			iban: 'DE02120300000000202051',
+			deviant: false,
+			additionalFields: { bankAccount__firstname: 'Max' },
+		});
+		await executeOperation.call(debit.context, resource, update, 0);
+		expect(debit.requests[0].url).toBe(
+			'https://stocks.ameiseapis.com/api/v1/contracts/5/bank-accounts',
+		);
+		expect(debit.requests[0].body).toEqual({
+			paymentMethod: 'lastschrift',
+			bankAccount: { iban: 'DE02120300000000202051', deviant: false, firstname: 'Max' },
+		});
+
+		const transfer = createContext({ contractId: '5', paymentMethod: 'ueberweisung' });
+		await executeOperation.call(transfer.context, resource, update, 0);
+		expect(transfer.requests[0].body).toEqual({ paymentMethod: 'ueberweisung', bankAccount: null });
+	});
+
+	it('sends the country of a new additional address as country code', () => {
+		const { operation: create } = operation('stocks', 'stocksCustomerAddress', 'createAdditional');
+		const request = buildRequest.call(
+			createContext({ customerId: '1', type: 'firma', nation: 'at', additionalFields: {} }).context,
+			create,
+			0,
+		);
+		expect(request.path).toBe('/v1/customers/1/additional-addresses');
+		expect(request.body).toEqual({ type: 'firma', countryCode: 'at' });
+	});
 });
 
 describe('execution', () => {
