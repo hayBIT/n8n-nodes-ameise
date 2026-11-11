@@ -105,8 +105,8 @@ Im Node wählt ihr zuerst die **API**, dann **Resource** und **Operation**.
 | Customer Address | Get/Update Main Address, Create/Get/Update/Delete Additional Address |
 | Customer Relation | Create, Get Many, Delete |
 | Customer Suggested Tag | Create, Get Many, Delete (global oder je Vermittler) |
-| Contract | Create, Get, Get Many, Get Many for Customer, Get Many Grouped by Address, Get Insured Contracts, Get Sum of Premiums, Get Bank Accounts, Get Aggregated Bank Accounts, Update, Update Address, Update Bank Account, Update Broker, Add Note, Notify Company (VDA), Get Logs, Get Contact People, Validate Policy Number, Get States, Get Lines, Get Cancellation Reasons, Get Line Group Categories |
-| Broker (Vermittler) | Get, Get Many, Update, Create Sub-Broker, Get/Update Legal IDs, Get/Update Status, Get Supporter, Set Supporter Role, Update Contractual Dates, Update Bank Account, Update Legal Status, Get Names, Get Parent IDs, Upload/Remove Logo, Get/Update/Reset Legitimation Document Template |
+| Contract | Create, Get, Get Many, Get Many for Customer, Get Many Grouped by Address, Get Insured Contracts, Get Premiums Total, Get Bank Accounts, Get Aggregated Bank Accounts, Update, Update Address, Update Bank Account, Update Broker, Add Note, Notify Company (VDA), Get Logs, Get Contact People, Validate Policy Number, Get States, Get Lines, Get Cancellation Reasons, Get Line Group Categories |
+| Broker (Vermittler) | Get, Get Many, Update, Create Sub-Broker, Set Sub-Broker Creation, Get Departments, Get/Update Legal IDs, Get/Update Status, Get Supporter, Set Supporter Role, Update Contractual Dates, Update Bank Account, Update Legal Status, Get Names, Get Parent IDs, Upload/Remove Logo, Get/Update/Reset Legitimation Document Template |
 | Broker Employee (Vermittler-Mitarbeiter) | Create, Get, Get Many, Get Many for Broker, Get Special Roles, Update, Set/Remove Contract Signer Role, Set/Remove Customer Supporter Role, Upload Profile/Signature Image |
 | Agency (Agentur) | Create, Get, Get Many, Update |
 | Company | Get, Get Many, Get Valid Agencies, Get Valid Agencies by BaFin Number |

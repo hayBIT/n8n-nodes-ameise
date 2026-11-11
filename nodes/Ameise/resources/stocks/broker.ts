@@ -384,6 +384,15 @@ export const stocksBroker: AmeiseResource = {
 			],
 		},
 		{
+			value: 'getDepartments',
+			name: 'Get Departments',
+			action: 'Get the departments of a broker',
+			description: 'Retrieve the departments of a broker that can be assigned to its employees',
+			method: 'GET',
+			path: '/v1/brokers/{brokerId}/departments',
+			fields: [brokerId],
+		},
+		{
 			value: 'getLegalIds',
 			name: 'Get Legal IDs',
 			action: 'Get the legal IDs of a broker',
@@ -409,6 +418,25 @@ export const stocksBroker: AmeiseResource = {
 			method: 'GET',
 			path: '/v1/brokers/{brokerId}/supporter',
 			fields: [brokerId],
+		},
+		{
+			value: 'setSubBrokerCreation',
+			name: 'Set Sub-Broker Creation',
+			action: 'Set whether sub brokers can create brokers',
+			description:
+				'Enable or disable the creation of new brokers by the sub-brokers of a main broker',
+			method: 'PUT',
+			path: '/v1/brokers/{brokerId}/sub-broker-creation',
+			fields: [
+				brokerId,
+				bodyField({
+					displayName: 'Is Enabled',
+					name: 'isEnabled',
+					type: 'boolean',
+					default: true,
+					description: 'Whether sub-brokers may create new brokers',
+				}),
+			],
 		},
 		{
 			value: 'setSupporter',
@@ -699,6 +727,26 @@ export const stocksEmployee: AmeiseResource = {
 						stringOption('lastname', 'Last Name'),
 						stringOption('mobile', 'Mobile'),
 						stringOption('phone', 'Phone'),
+						booleanOption(
+							'publicContactDetails__address',
+							'Public Address',
+							'Whether the address is shown in the public contact details. Can only be changed by the employee themselves.',
+						),
+						booleanOption(
+							'publicContactDetails__email',
+							'Public Email',
+							'Whether the email address is shown in the public contact details. Can only be changed by the employee themselves.',
+						),
+						booleanOption(
+							'publicContactDetails__mobile',
+							'Public Mobile',
+							'Whether the mobile number is shown in the public contact details. Can only be changed by the employee themselves.',
+						),
+						booleanOption(
+							'publicContactDetails__phone',
+							'Public Phone',
+							'Whether the phone number is shown in the public contact details. Can only be changed by the employee themselves.',
+						),
 						salutationOption('salutation'),
 						stringOption('street', 'Street'),
 						stringOption('username', 'Username'),
